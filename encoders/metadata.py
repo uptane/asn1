@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
+
 from pyasn1.type import univ, char, namedtype, namedval, tag, constraint, useful
 
 from pyasn1.codec.ber import encoder, decoder
@@ -61,12 +63,11 @@ def get_ber_signed(asn_signed):
   return encoder.encode(asn_signed)
 
 
-def identity_update_json_signatures(ber_signed_digest, json_signatures):
-  for json_signature in json_signatures:
-    json_signature['keyid'] = json_signature['keyid']
-    json_signature['method'] = json_signature['method']
-    # NOTE: Replace this signature with sign(private_key, ber_signed_digest).
-    json_signature['sig'] = json_signature['sig']
+def identity_update_json_signature(ber_signed_digest, json_signature):
+  json_signature['keyid'] = json_signature['keyid']
+  json_signature['method'] = json_signature['method']
+  # NOTE: Replace this signature with sign(private_key, ber_signed_digest).
+  json_signature['sig'] = json_signature['sig']
 
 
 def iso8601_to_epoch(datestring):
@@ -108,12 +109,13 @@ def json_to_ber_metadata(asn_signed, ber_signed, json_signatures):
 
 
 def pretty_print(json_metadata):
+  # http://stackoverflow.com/a/493399
   print(json.dumps(json_metadata, sort_keys=True, indent=1,
-                   separators=(',', ': ')))
+                   separators=(',', ': ')), end='')
 
 
 def test(json_filename, ber_filename, get_asn_signed, get_json_signed,
-         update_json_signatures):
+         update_json_signature):
   # 1. Read from JSON.
   with open(json_filename, 'rb') as jsonFile:
     before_json = json.load(jsonFile)
@@ -124,7 +126,8 @@ def test(json_filename, ber_filename, get_asn_signed, get_json_signed,
   asn_signed, ber_signed = get_asn_and_ber_signed(get_asn_signed, json_signed)
   ber_signed_digest = hashlib.sha256(ber_signed).hexdigest()
   # NOTE: Use ber_signed_digest to *MODIFY* json_signatures.
-  update_json_signatures(ber_signed_digest, json_signatures)
+  for json_signature in json_signatures:
+    update_json_signature(ber_signed_digest, json_signature)
   with open (ber_filename, 'wb') as berFile:
     ber_metadata = json_to_ber_metadata(asn_signed, ber_signed, json_signatures)
     berFile.write(ber_metadata)
