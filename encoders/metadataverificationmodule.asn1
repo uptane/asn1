@@ -145,7 +145,7 @@ TopLevelRole ::= SEQUENCE {
 }
 
 TargetsMetadata ::= SEQUENCE {
-    numberOfTargets	 [0] IMPLICIT Length,
+    numberOfTargets	 [0] IMPLICIT Natural,
     targets	 [1] IMPLICIT Targets,
     delegations	 [2] IMPLICIT TargetsDelegations OPTIONAL,
     ...
