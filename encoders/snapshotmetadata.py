@@ -20,7 +20,7 @@ def get_asn_signed(json_signed):
     snapshotMetadataFile['version'] = filemeta['version']
 
     # Optional bits.
-    if 'length' in filemeta and 'hashes' in filemeta:
+    if filename == 'root.json':
       snapshotMetadataFile['length'] = filemeta['length']
       snapshotMetadataFile['numberOfHashes'] = 1
       snapshotMetadataFileHashes = \
