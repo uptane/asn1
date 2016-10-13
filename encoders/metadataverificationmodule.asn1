@@ -233,6 +233,9 @@ SnapshotMetadataFile ::= SEQUENCE {
 TimestampMetadata ::= SEQUENCE {
     filename	 [0] IMPLICIT Filename,
     version	 [1] IMPLICIT Version,
+    length	 [2] IMPLICIT Length,
+    numberOfHashes	 [3] IMPLICIT Length,
+    hashes	 [4] IMPLICIT Hashes,
     ...
 }
 
