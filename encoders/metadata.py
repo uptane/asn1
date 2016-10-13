@@ -61,6 +61,13 @@ def get_ber_signed(asn_signed):
   return encoder.encode(asn_signed)
 
 
+def identity_update_json_signatures(ber_signed_digest, json_signatures):
+  for json_signature in json_signatures:
+    json_signature['keyid'] = json_signature['keyid']
+    json_signature['method'] = json_signature['method']
+    json_signature['sig'] = json_signature['sig']
+
+
 def iso8601_to_epoch(datestring):
   return calendar.timegm(datetime.strptime(datestring,
                                            "%Y-%m-%dT%H:%M:%SZ").timetuple())
@@ -104,7 +111,9 @@ def pretty_print(json_metadata):
                    separators=(',', ': ')))
 
 
-def test(json_filename, ber_filename, get_asn_signed, get_json_signed):
+
+def test(json_filename, ber_filename, get_asn_signed, get_json_signed,
+         update_json_signatures):
   # 1. Read from JSON.
   with open(json_filename, 'rb') as jsonFile:
     before_json = json.load(jsonFile)
@@ -113,8 +122,9 @@ def test(json_filename, ber_filename, get_asn_signed, get_json_signed):
 
   # 2. Write the signed encoding.
   asn_signed, ber_signed = get_asn_and_ber_signed(get_asn_signed, json_signed)
-  # TODO: Use the hash(ber_signed) to MODIFY json_signatures.
   ber_signed_digest = hashlib.sha256(ber_signed).hexdigest()
+  # NOTE: Use ber_signed_digest to *MODIFY* json_signatures.
+  update_json_signatures(ber_signed_digest, json_signatures)
   with open (ber_filename, 'wb') as berFile:
     ber_metadata = json_to_ber_metadata(asn_signed, ber_signed, json_signatures)
     berFile.write(ber_metadata)
