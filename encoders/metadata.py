@@ -108,7 +108,7 @@ def json_to_ber_metadata(asn_signed, ber_signed, json_signatures):
 
 
 def pretty_print(json_metadata):
-  print(json.dumps(json_metadata, sort_keys=True, indent=2,
+  print(json.dumps(json_metadata, sort_keys=True, indent=1,
                    separators=(',', ': ')))
 
 
