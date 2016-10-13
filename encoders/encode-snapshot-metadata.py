@@ -20,19 +20,26 @@ targetsFilenameAndVersion['filename'] = 'targets.ber'
 targetsFilenameAndVersion['version'] = 1
 snapshotMetadataFiles[0] = targetsFilenameAndVersion
 
-supplierOneFilenameAndVersion = SnapshotMetadataFile()
-supplierOneFilenameAndVersion['filename'] = 'supplier1.ber'
-supplierOneFilenameAndVersion['version'] = 1
-snapshotMetadataFiles[1] = supplierOneFilenameAndVersion
-
-supplierTwoFilenameAndVersion = SnapshotMetadataFile()
-supplierTwoFilenameAndVersion['filename'] = 'supplier2.ber'
-supplierTwoFilenameAndVersion['version'] = 1
-snapshotMetadataFiles[2] = supplierTwoFilenameAndVersion
+rootFilenameAndVersion = SnapshotMetadataFile()
+rootFilenameAndVersion['filename'] = 'root.ber'
+rootFilenameAndVersion['version'] = 1
+rootFilenameAndVersion['length'] = 42
+rootFilenameAndVersion['numberOfHashes'] = 1
+rootHashes = Hashes().subtype(implicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatSimple, 4))
+rootHash = Hash()
+rootHash['function'] = int(HashFunction('sha256'))
+rootDigest = BinaryData().subtype(explicitTag=tag.Tag(tag.tagClassContext,
+                                                tag.tagFormatConstructed,
+                                                1))
+rootDigest['hexString'] = '85738f8f9a7f1b04b5329c590ebcb9e425925c6d0984089c43a022de4f19c281'
+rootHash['digest'] = rootDigest
+rootHashes[0] = rootHash
+rootFilenameAndVersion['hashes'] = rootHashes
+snapshotMetadataFiles[1] = rootFilenameAndVersion
 
 signedBody = SignedBody().subtype(explicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatConstructed, 3))
 snapshotMetadata = SnapshotMetadata().subtype(implicitTag=tag.Tag(tag.tagClassContext, tag.tagFormatConstructed, 2))
-snapshotMetadata['numberOfSnapshotMetadataFiles'] = 3
+snapshotMetadata['numberOfSnapshotMetadataFiles'] = 2
 snapshotMetadata['snapshotMetadataFiles'] = snapshotMetadataFiles
 signedBody['snapshotMetadata'] = snapshotMetadata
 signed['body'] = signedBody

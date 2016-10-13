@@ -227,6 +227,9 @@ SnapshotMetadataFiles ::= SEQUENCE (SIZE(1..128)) OF SnapshotMetadataFile
 SnapshotMetadataFile ::= SEQUENCE {
     filename	 [0] IMPLICIT StrictFilename,
     version	 [1] IMPLICIT Version,
+    length	 [2] IMPLICIT Length OPTIONAL,
+    numberOfHashes	 [3] IMPLICIT Length OPTIONAL,
+    hashes	 [4] IMPLICIT Hashes OPTIONAL,
     ...
 }
 
