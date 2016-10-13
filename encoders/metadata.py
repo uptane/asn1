@@ -22,7 +22,7 @@ def ber_to_json_metadata(get_json_signed, ber_metadata):
   json_signatures = []
   asn_signatures = asn_metadata['signatures']
 
-  for i in xrange(asn_metadata['numberOfSignatures']):
+  for i in range(asn_metadata['numberOfSignatures']):
     asn_signature = asn_signatures[i]
     asn_digest = asn_signature['hash']['digest']['hexString']
     assert asn_digest == ber_signed_digest
@@ -102,3 +102,25 @@ def json_to_ber_metadata(asn_signed, ber_signed, json_signatures):
 def pretty_print(json_metadata):
   print(json.dumps(json_metadata, sort_keys=True, indent=2,
                    separators=(',', ': ')))
+
+
+def test(json_filename, ber_filename, get_asn_signed, get_json_signed):
+  # 1. Read from JSON.
+  with open(json_filename, 'rb') as jsonFile:
+    before_json = json.load(jsonFile)
+  json_signed = before_json['signed']
+  json_signatures = before_json['signatures']
+
+  # 2. Write the signed encoding.
+  asn_signed, ber_signed = get_asn_and_ber_signed(get_asn_signed, json_signed)
+  # TODO: Use the hash(ber_signed) to MODIFY json_signatures.
+  with open (ber_filename, 'wb') as berFile:
+    ber_metadata = json_to_ber_metadata(asn_signed, ber_signed, json_signatures)
+    berFile.write(ber_metadata)
+
+  # 3. Read it back to check the signed hash.
+  with open(ber_filename, 'rb') as berFile:
+    ber_metadata = berFile.read()
+  # TODO: In after_json, check that signatures match signed_hash.
+  after_json = ber_to_json_metadata(get_json_signed, ber_metadata)
+  pretty_print(after_json)

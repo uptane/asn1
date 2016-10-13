@@ -6,7 +6,6 @@ from metadataverificationmodule import *
 
 import metadata
 
-import json
 
 def get_asn_signed(json_signed):
   timestampMetadata = TimestampMetadata()\
@@ -69,24 +68,5 @@ def get_json_signed(asn_metadata):
 
 
 if __name__ == '__main__':
-  # 1. Read from JSON.
-  with open('timestamp.json', 'rb') as jsonFile:
-    before_json = json.load(jsonFile)
-  json_signed = before_json['signed']
-  json_signatures = before_json['signatures']
-
-  # 2. Write the signed encoding.
-  asn_signed, ber_signed = metadata.get_asn_and_ber_signed(get_asn_signed,
-                                                           json_signed)
-  # TODO: Use the hash(ber_signed) to MODIFY json_signatures.
-  with open ('timestamp.ber', 'wb') as berFile:
-    ber_metadata = metadata.json_to_ber_metadata(asn_signed, ber_signed,
-                                                 json_signatures)
-    berFile.write(ber_metadata)
-
-  # 3. Read it back to check the signed hash.
-  with open('timestamp.ber', 'rb') as berFile:
-    ber_metadata = berFile.read()
-  # TODO: In after_json, check that signatures match signed_hash.
-  after_json = metadata.ber_to_json_metadata(get_json_signed, ber_metadata)
-  metadata.pretty_print(after_json)
+  metadata.test('timestamp.json', 'timestamp.ber', get_asn_signed,
+                get_json_signed)
