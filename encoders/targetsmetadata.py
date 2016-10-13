@@ -45,6 +45,7 @@ def get_json_signed(asn_metadata):
 
   targetsMetadata = asn_signed['body']['targetsMetadata']
   set_json_targets(json_signed, targetsMetadata)
+  set_json_delegations(json_signed, targetsMetadata)
 
   return json_signed
 
@@ -60,6 +61,103 @@ def set_delegations(json_signed, targetsMetadata):
     set_roles(json_signed, delegations)
     set_prioritizedPathsToRoles(json_signed, delegations)
     targetsMetadata['delegations'] = delegations
+
+
+def set_json_delegations(json_signed, targetsMetadata):
+  delegations = targetsMetadata['delegations']
+
+  # Optional bit.
+  if delegations:
+    json_keys = set_json_keys(json_signed, delegations)
+    json_roles = set_json_roles(json_signed, delegations)
+    json_signed['delegations'] = {
+      'keys': json_keys,
+      'roles': json_roles
+    }
+
+
+def set_json_keys(json_signed, delegations):
+  numberOfKeys = int(delegations['numberOfKeys'])
+  keys = delegations['keys']
+  json_keys = {}
+
+  for i in range(numberOfKeys):
+    key = keys[i]
+    keyid = str(key['publicKeyid'])
+    keytype = int(key['publicKeyType'])
+    # FIXME: Only ed25519 keys allowed for now.
+    assert keytype == 1
+    keytype = 'ed25519'
+    keyval = str(key['publicKeyValue']['hexString'])
+    json_keys[keyid] = {
+      "keyid_hash_algorithms": [
+        "sha256",
+        "sha512"
+      ],
+      "keytype": keytype,
+      "keyval": {
+        "public": keyval
+      }
+    }
+
+  return json_keys
+
+
+def set_json_roles(json_signed, delegations):
+  json_roles = []
+
+  numberOfRoles = int(delegations['numberOfRoles'])
+  roles = delegations['roles']
+
+  for i in range(numberOfRoles):
+    role = roles[i]
+    name = str(role['rolename'])
+
+    numberOfKeyids = int(role['numberOfKeyids'])
+    keyids = role['keyids']
+    json_keyids = []
+
+    for j in range(numberOfKeyids):
+      keyid = keyids[j]
+      json_keyids.append(str(keyid))
+
+    threshold = int(role['threshold'])
+    json_role = {
+      'keyids': json_keyids,
+      'name': name,
+      'threshold': threshold
+    }
+    json_roles.append(json_role)
+
+  numberOfPrioritizedPathsToRoles = \
+                            int(delegations['numberOfPrioritizedPathsToRoles'])
+  prioritizedPathsToRoles = delegations['prioritizedPathsToRoles']
+
+  for i in range(numberOfPrioritizedPathsToRoles):
+    pathsToRoles = prioritizedPathsToRoles[i]
+
+    numberOfPaths = int(pathsToRoles['numberOfPaths'])
+    paths = pathsToRoles['paths']
+    json_paths = []
+
+    for j in range(numberOfPaths):
+      json_paths.append(str(paths[j]))
+
+    numberOfRoles = int(pathsToRoles['numberOfRoles'])
+    # FIXME: Multi-role delegations (i.e., TAP 3) not yet allowed!
+    assert numberOfRoles == 1
+    roles = pathsToRoles['roles']
+    name = str(roles[0])
+    backtrack = bool(pathsToRoles['terminating'])
+
+    # FIXME: O(n^2).
+    for json_role in json_roles:
+      if json_role['name'] == name:
+        json_role['backtrack'] = backtrack
+        json_role['paths'] = json_paths
+        break
+
+  return json_roles
 
 
 def set_json_targets(json_signed, targetsMetadata):
@@ -160,7 +258,7 @@ def set_prioritizedPathsToRoles(json_signed, delegations):
     pathsToRoles['numberOfRoles'] = 1
     pathsToRoles['roles'] = roles
 
-    pathsToRoles['terminating'] = True
+    pathsToRoles['terminating'] = json_role['backtrack']
 
     prioritizedPathsToRoles[numberOfPrioritizedPathsToRoles] = pathsToRoles
     numberOfPrioritizedPathsToRoles += 1
@@ -249,5 +347,5 @@ def set_targets(json_signed, targetsMetadata):
 
 
 if __name__ == '__main__':
-  metadata.test('director.json', 'targets.ber', get_asn_signed,
+  metadata.test('supplier.json', 'targets.ber', get_asn_signed,
                 get_json_signed, metadata.identity_update_json_signature)
