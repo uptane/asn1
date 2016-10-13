@@ -104,7 +104,8 @@ def set_keys(json_signed, rootPublicKeyid, timestampPublicKeyid,
   rootPublicKey = PublicKey()
   # NOTE: Only 1 key allowed for now!
   rootPublicKey['publicKeyid'] = rootPublicKeyid
-  rootPublicKeyType = json_signed['keys'][rootPublicKeyid]['keytype']
+  rootPublicKeyType = \
+                json_signed['keys'][rootPublicKeyid]['keytype'].encode('ascii')
   rootPublicKey['publicKeyType'] = int(PublicKeyType(rootPublicKeyType))
   rootPublicKeyValue = BinaryData()\
                        .subtype(explicitTag=tag.Tag(tag.tagClassContext,
@@ -119,7 +120,8 @@ def set_keys(json_signed, rootPublicKeyid, timestampPublicKeyid,
   timestampPublicKey = PublicKey()
   # NOTE: Only 1 key allowed for now!
   timestampPublicKey['publicKeyid'] = timestampPublicKeyid
-  timestampPublicKeyType = json_signed['keys'][timestampPublicKeyid]['keytype']
+  timestampPublicKeyType = \
+            json_signed['keys'][timestampPublicKeyid]['keytype'].encode('ascii')
   timestampPublicKey['publicKeyType'] = \
                                       int(PublicKeyType(timestampPublicKeyType))
   timestampPublicKeyValue = \
@@ -134,7 +136,8 @@ def set_keys(json_signed, rootPublicKeyid, timestampPublicKeyid,
   snapshotPublicKey = PublicKey()
   # NOTE: Only 1 key allowed for now!
   snapshotPublicKey['publicKeyid'] = snapshotPublicKeyid
-  snapshotPublicKeyType = json_signed['keys'][snapshotPublicKeyid]['keytype']
+  snapshotPublicKeyType = \
+            json_signed['keys'][snapshotPublicKeyid]['keytype'].encode('ascii')
   snapshotPublicKey['publicKeyType'] = \
                                       int(PublicKeyType(snapshotPublicKeyType))
   snapshotPublicKeyValue = \
@@ -149,7 +152,8 @@ def set_keys(json_signed, rootPublicKeyid, timestampPublicKeyid,
   targetsPublicKey = PublicKey()
   # NOTE: Only 1 key allowed for now!
   targetsPublicKey['publicKeyid'] = targetsPublicKeyid
-  targetsPublicKeyType = json_signed['keys'][targetsPublicKeyid]['keytype']
+  targetsPublicKeyType = \
+              json_signed['keys'][targetsPublicKeyid]['keytype'].encode('ascii')
   targetsPublicKey['publicKeyType'] = \
                                       int(PublicKeyType(targetsPublicKeyType))
   targetsPublicKeyValue = BinaryData()\
