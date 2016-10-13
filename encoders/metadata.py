@@ -27,6 +27,7 @@ def ber_to_json_metadata(get_json_signed, ber_metadata):
   for i in range(asn_metadata['numberOfSignatures']):
     asn_signature = asn_signatures[i]
     asn_digest = asn_signature['hash']['digest']['hexString']
+    # NOTE: Ensure that hash(BER(Metadata.signed)==Metadata.signatures[i].hash).
     assert asn_digest == ber_signed_digest
 
     # Cheap hack.
