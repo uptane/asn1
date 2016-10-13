@@ -41,9 +41,9 @@ def ber_to_json_metadata(get_json_signed, ber_metadata):
 
   return {
     'signatures': json_signatures,
+    'signed': get_json_signed(asn_metadata),
     # NOTE: Check that signatures are for signed_hash instead of signed.
-    'signed_hash': ber_signed_digest,
-    'signed': get_json_signed(asn_metadata)
+    'signed_hash': ber_signed_digest
   }
 
 
@@ -65,6 +65,7 @@ def identity_update_json_signatures(ber_signed_digest, json_signatures):
   for json_signature in json_signatures:
     json_signature['keyid'] = json_signature['keyid']
     json_signature['method'] = json_signature['method']
+    # NOTE: Replace this signature with sign(private_key, ber_signed_digest).
     json_signature['sig'] = json_signature['sig']
 
 
@@ -109,7 +110,6 @@ def json_to_ber_metadata(asn_signed, ber_signed, json_signatures):
 def pretty_print(json_metadata):
   print(json.dumps(json_metadata, sort_keys=True, indent=2,
                    separators=(',', ': ')))
-
 
 
 def test(json_filename, ber_filename, get_asn_signed, get_json_signed,
