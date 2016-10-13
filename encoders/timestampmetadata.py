@@ -2,8 +2,6 @@
 
 from pyasn1.type import univ, char, namedtype, namedval, tag, constraint, useful
 
-from pyasn1.codec.ber import encoder, decoder
-
 from metadataverificationmodule import *
 
 import metadata
