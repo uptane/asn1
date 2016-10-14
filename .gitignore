@@ -8,6 +8,9 @@ Makefile.am.sample
 *.der
 *.h
 *.json
+*.log
 *.o
+*.pri
+*.pub
 *.pyc
 *.swp
