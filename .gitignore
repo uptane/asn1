@@ -10,7 +10,6 @@ Makefile.am.sample
 *.json
 *.log
 *.o
-*.pri
 *.pub
 *.pyc
 *.swp

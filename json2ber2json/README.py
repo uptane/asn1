@@ -74,53 +74,30 @@ def sign_the_ber_not_the_json(json_in_filename, ber_filename, json_out_filename,
   or targetsmetadata module, depending on which type of JSON metadata is being
   converted.'''
 
-  timestamp_keyid = \
-              'da9c65c96c5c4072f6984f7aa81216d776aca6664d49cb4dfafbc7119320d9cc'
-  timestamp_keyval = \
-              'f4ac8d95cfdf65a4ccaee072ba5a48e8ad6a0c30be6ffd525aec6bc078211033'
-  keyid_to_keyfilename = {
-    timestamp_keyid: 'timestamp.pri'
-  }
-  keyid_to_keypasswd = {
-    timestamp_keyid: 'pw'
-  }
-  keyid_to_keyval = {
-    timestamp_keyid: timestamp_keyval
-  }
+  # Setup keys.
+  with open(json_in_filename) as json_in_file:
+    json_signatures = json.load(json_in_file)['signatures']
+  for json_signature in json_signatures:
+    tuf.repository_tool\
+       .generate_and_write_ed25519_keypair(json_signature['keyid'],
+                                           password='')
 
   def update_json_signature(ber_signed_digest, json_signature):
     keyid = json_signature['keyid']
-    keyfilename = keyid_to_keyfilename[keyid]
-    keypasswd = keyid_to_keypasswd[keyid]
     private_key = tuf.repository_tool\
-                     .import_ed25519_privatekey_from_file(keyfilename,
-                                                          password=keypasswd)
+                     .import_ed25519_privatekey_from_file(keyid,
+                                                          password='')
     signature = tuf.keys.create_signature(private_key, ber_signed_digest)
     # NOTE: Update the original JSON signature object!
     json_signature['sig'] = signature['sig']
 
   def check_json_signature(json_signature):
     keyid = json_signature['keyid']
-    keyval = keyid_to_keyval[keyid]
-    method = json_signature['method']
-    sig = json_signature['sig']
+    public_key = tuf.repository_tool\
+                    .import_ed25519_publickey_from_file('{}.pub'.format(keyid))
     hash = json_signature['hash']
 
-    keydict = {
-      'keytype': method,
-      'keyid': keyid,
-      'keyval': {
-        'public': keyval
-      }
-    }
-
-    sigdict = {
-      'keyid': keyid,
-      'method': method,
-      'sig': sig
-    }
-
-    assert tuf.keys.verify_signature(keydict, sigdict, hash)
+    assert tuf.keys.verify_signature(public_key, json_signature, hash)
 
   # 1. Read from JSON.
   with open(json_in_filename, 'rb') as json_in_file:
