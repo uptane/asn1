@@ -36,6 +36,8 @@ def ber_to_json_metadata(get_json_signed, ber_metadata):
     method = 'ed25519'
 
     json_signature = {
+      # NOTE: Check that signatures are for hash instead of signed.
+      'hash': ber_signed_digest,
       'keyid': str(asn_signature['keyid']),
       'method': method,
       'sig': str(asn_signature['value'])
@@ -44,9 +46,7 @@ def ber_to_json_metadata(get_json_signed, ber_metadata):
 
   return {
     'signatures': json_signatures,
-    'signed': get_json_signed(asn_metadata),
-    # NOTE: Check that signatures are for signed_hash instead of signed.
-    'signed_hash': ber_signed_digest
+    'signed': get_json_signed(asn_metadata)
   }
 
 
@@ -65,8 +65,6 @@ def get_ber_signed(asn_signed):
 
 
 def identity_update_json_signature(ber_signed_digest, json_signature):
-  json_signature['keyid'] = json_signature['keyid']
-  json_signature['method'] = json_signature['method']
   # NOTE: Replace this signature with sign(private_key, ber_signed_digest).
   json_signature['sig'] = json_signature['sig']
 
