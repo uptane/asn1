@@ -145,7 +145,7 @@ TopLevelRole ::= SEQUENCE {
 }
 
 TargetsMetadata ::= SEQUENCE {
-    numberOfTargets	 [0] IMPLICIT Length,
+    numberOfTargets	 [0] IMPLICIT Natural,
     targets	 [1] IMPLICIT Targets,
     delegations	 [2] IMPLICIT TargetsDelegations OPTIONAL,
     ...
@@ -227,12 +227,18 @@ SnapshotMetadataFiles ::= SEQUENCE (SIZE(1..128)) OF SnapshotMetadataFile
 SnapshotMetadataFile ::= SEQUENCE {
     filename	 [0] IMPLICIT StrictFilename,
     version	 [1] IMPLICIT Version,
+    length	 [2] IMPLICIT Length OPTIONAL,
+    numberOfHashes	 [3] IMPLICIT Length OPTIONAL,
+    hashes	 [4] IMPLICIT Hashes OPTIONAL,
     ...
 }
 
 TimestampMetadata ::= SEQUENCE {
     filename	 [0] IMPLICIT Filename,
     version	 [1] IMPLICIT Version,
+    length	 [2] IMPLICIT Length,
+    numberOfHashes	 [3] IMPLICIT Length,
+    hashes	 [4] IMPLICIT Hashes,
     ...
 }
 
@@ -245,22 +251,16 @@ Nonces ::= SEQUENCE (SIZE(1..128)) OF Nonce
 
 Nonce ::= INTEGER
 
-SequenceOfCurrentTimes ::= SEQUENCE {
-    numberOfCurrentTimes	 [0] IMPLICIT Length,
-    currentTimes	 [1] IMPLICIT CurrentTimes
-}
-
-CurrentTimes ::= SEQUENCE (SIZE(1..128)) OF CurrentTime
-
 CurrentTime ::= SEQUENCE {
-    signed	 [0] IMPLICIT NonceAndTimestamp,
+    signed	 [0] IMPLICIT NoncesAndTimestamp,
     numberOfSignatures	 [1] IMPLICIT Length,
     signatures	 [2] IMPLICIT Signatures
 }
 
-NonceAndTimestamp ::= SEQUENCE {
-    nonce	 [0] IMPLICIT Nonce,
-    timestamp	 [1] IMPLICIT UTCDateTime,
+NoncesAndTimestamp ::= SEQUENCE {
+    numberOfNonces	 [0] IMPLICIT Length,
+    nonces	 [1] IMPLICIT Nonces,
+    timestamp	 [2] IMPLICIT UTCDateTime,
     ...
 }
 
@@ -277,7 +277,8 @@ VersionReport ::= SEQUENCE {
 
 ECUVersionManifest ::= SEQUENCE {
     signed	 [0] IMPLICIT ECUVersionManifestSigned,
-    signature	 [1] IMPLICIT Signature
+    numberOfSignatures	 [1] IMPLICIT Length,
+    signatures	 [2] IMPLICIT Signatures
 }
 
 ECUVersionManifestSigned ::= SEQUENCE {
@@ -291,7 +292,8 @@ ECUVersionManifestSigned ::= SEQUENCE {
 
 VehicleVersionManifest ::= SEQUENCE {
     signed	 [0] IMPLICIT VehicleVersionManifestSigned,
-    signature	 [1] IMPLICIT Signature
+    numberOfSignatures	 [1] IMPLICIT Length,
+    signatures	 [2] IMPLICIT Signatures
 }
 
 VehicleVersionManifestSigned ::= SEQUENCE {

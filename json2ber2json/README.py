@@ -24,6 +24,10 @@ import timeservermodule
 import bootloadermetadata
 import bootloadermodule
 
+# Module for the vehicle version manifest.
+import applicationmetadata
+import applicationmodule
+
 
 def seamless_transport_of_json_over_ber(json_in_filename, ber_filename,
                                         json_out_filename, get_asn_signed,
@@ -45,7 +49,9 @@ def seamless_transport_of_json_over_ber(json_in_filename, ber_filename,
   For timestamp, snapshot, root, targets metadata, it is
   metadataverificationmodule.Metadata.
   For the signed time server response, it is timeservermodule.CurrentTime.
-  For an ECU version manifest, it is bootloadermodule.ECUVersionManifest.'''
+  For an ECU version manifest, it is bootloadermodule.ECUVersionManifest.
+  For the vehicle version manifest, it is
+  applicationmodule.VehicleVersionManifest.'''
 
   # 1. Read from JSON.
   with open(json_in_filename, 'rb') as json_in_file:
@@ -95,7 +101,9 @@ def sign_the_ber_not_the_json(json_in_filename, ber_filename, json_out_filename,
   For timestamp, snapshot, root, targets metadata, it is
   metadataverificationmodule.Metadata.
   For the signed time server response, it is timeservermodule.CurrentTime.
-  For an ECU version manifest, it is bootloadermodule.ECUVersionManifest.'''
+  For an ECU version manifest, it is bootloadermodule.ECUVersionManifest.
+  For the vehicle version manifest, it is
+  applicationmodule.VehicleVersionManifest.'''
 
   # Setup keys.
   with open(json_in_filename) as json_in_file:

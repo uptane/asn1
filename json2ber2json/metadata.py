@@ -14,9 +14,7 @@ import hashlib
 import json
 
 
-def ber_to_json_metadata(get_json_signed, ber_metadata, asn1Spec):
-  asn_metadata = decoder.decode(ber_metadata, asn1Spec=asn1Spec())[0]
-
+def asn_to_json_metadata(get_json_signed, asn_metadata):
   asn_signed = asn_metadata['signed']
   ber_signed = get_ber_signed(asn_signed)
   ber_signed_digest = hashlib.sha256(ber_signed).hexdigest()
@@ -50,6 +48,11 @@ def ber_to_json_metadata(get_json_signed, ber_metadata, asn1Spec):
   }
 
 
+def ber_to_json_metadata(get_json_signed, ber_metadata, asn1Spec):
+  asn_metadata = decoder.decode(ber_metadata, asn1Spec=asn1Spec())[0]
+  return asn_to_json_metadata(get_json_signed, asn_metadata)
+
+
 def epoch_to_iso8601(timestamp):
   return datetime.utcfromtimestamp(timestamp).isoformat()+'Z'
 
@@ -74,7 +77,7 @@ def iso8601_to_epoch(datestring):
                                            "%Y-%m-%dT%H:%M:%SZ").timetuple())
 
 
-def json_to_ber_metadata(asn_signed, ber_signed, json_signatures, asn1Spec):
+def json_to_asn_metadata(asn_signed, ber_signed, json_signatures, asn1Spec):
   metadata = asn1Spec()
   metadata['signed'] = asn_signed
   signedDigest = hashlib.sha256(ber_signed).hexdigest()
@@ -104,6 +107,12 @@ def json_to_ber_metadata(asn_signed, ber_signed, json_signatures, asn1Spec):
 
   metadata['numberOfSignatures'] = numberOfSignatures
   metadata['signatures'] = asn_signatures
+  return metadata
+
+
+def json_to_ber_metadata(asn_signed, ber_signed, json_signatures, asn1Spec):
+  metadata = json_to_asn_metadata(asn_signed, ber_signed, json_signatures,
+                                  asn1Spec)
   return encoder.encode(metadata)
 
 
