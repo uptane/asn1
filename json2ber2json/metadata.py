@@ -14,8 +14,8 @@ import hashlib
 import json
 
 
-def ber_to_json_metadata(get_json_signed, ber_metadata):
-  asn_metadata = decoder.decode(ber_metadata, asn1Spec=Metadata())[0]
+def ber_to_json_metadata(get_json_signed, ber_metadata, asn1Spec):
+  asn_metadata = decoder.decode(ber_metadata, asn1Spec=asn1Spec())[0]
 
   asn_signed = asn_metadata['signed']
   ber_signed = get_ber_signed(asn_signed)
@@ -74,8 +74,8 @@ def iso8601_to_epoch(datestring):
                                            "%Y-%m-%dT%H:%M:%SZ").timetuple())
 
 
-def json_to_ber_metadata(asn_signed, ber_signed, json_signatures):
-  metadata = Metadata()
+def json_to_ber_metadata(asn_signed, ber_signed, json_signatures, asn1Spec):
+  metadata = asn1Spec()
   metadata['signed'] = asn_signed
   signedDigest = hashlib.sha256(ber_signed).hexdigest()
 
@@ -114,7 +114,7 @@ def pretty_print(json_metadata):
 
 
 def test(json_filename, ber_filename, get_asn_signed, get_json_signed,
-         update_json_signature):
+         update_json_signature, asn1Spec):
   # 1. Read from JSON.
   with open(json_filename, 'rb') as jsonFile:
     before_json = json.load(jsonFile)
@@ -128,12 +128,13 @@ def test(json_filename, ber_filename, get_asn_signed, get_json_signed,
   for json_signature in json_signatures:
     update_json_signature(ber_signed_digest, json_signature)
   with open (ber_filename, 'wb') as berFile:
-    ber_metadata = json_to_ber_metadata(asn_signed, ber_signed, json_signatures)
+    ber_metadata = json_to_ber_metadata(asn_signed, ber_signed, json_signatures,
+                                        asn1Spec)
     berFile.write(ber_metadata)
 
   # 3. Read it back to check the signed hash.
   with open(ber_filename, 'rb') as berFile:
     ber_metadata = berFile.read()
   # NOTE: In after_json, check that signatures match signed_hash.
-  after_json = ber_to_json_metadata(get_json_signed, ber_metadata)
+  after_json = ber_to_json_metadata(get_json_signed, ber_metadata, asn1Spec)
   pretty_print(after_json)

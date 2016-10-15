@@ -4,7 +4,7 @@ from pyasn1.type import univ, char, namedtype, namedval, tag, constraint, useful
 
 from timeservermodule import *
 
-import timeserver
+import metadata
 
 
 def get_asn_signed(json_signed):
@@ -20,7 +20,7 @@ def get_asn_signed(json_signed):
     numberOfNonces += 1
   signed['numberOfNonces'] = numberOfNonces
   signed['nonces'] = nonces
-  signed['timestamp'] = timeserver.iso8601_to_epoch(json_signed['time'])
+  signed['timestamp'] = metadata.iso8601_to_epoch(json_signed['time'])
   return signed
 
 
@@ -28,7 +28,7 @@ def get_json_signed(asn_metadata):
   asn_signed = asn_metadata['signed']
 
   json_signed = {
-    'time': timeserver.epoch_to_iso8601(asn_signed['timestamp'])
+    'time': metadata.epoch_to_iso8601(asn_signed['timestamp'])
   }
 
   numberOfNonces = int(asn_signed['numberOfNonces'])
@@ -42,5 +42,6 @@ def get_json_signed(asn_metadata):
 
 
 if __name__ == '__main__':
-  timeserver.test('timeserver.json', 'timeserver.ber', get_asn_signed,
-                get_json_signed, timeserver.identity_update_json_signature)
+  metadata.test('timeserver.json', 'timeserver.ber', get_asn_signed,
+                get_json_signed, metadata.identity_update_json_signature,
+                CurrentTime)

@@ -237,4 +237,5 @@ def set_roles(json_signed, rootPublicKeyid, timestampPublicKeyid,
 
 if __name__ == '__main__':
   metadata.test('root.json', 'root.ber', get_asn_signed,
-                get_json_signed, metadata.identity_update_json_signature)
+                get_json_signed, metadata.identity_update_json_signature,
+                Metadata)

@@ -4,7 +4,7 @@ from pyasn1.type import univ, char, namedtype, namedval, tag, constraint, useful
 
 from bootloadermodule import *
 
-import bootloader
+import metadata
 
 
 def get_asn_signed(json_signed):
@@ -14,9 +14,9 @@ def get_asn_signed(json_signed):
 
   signed['ecuIdentifier'] = json_signed['ecu_serial']
   signed['previousTime'] = \
-            bootloader.iso8601_to_epoch(json_signed['previous_timeserver_time'])
+            metadata.iso8601_to_epoch(json_signed['previous_timeserver_time'])
   signed['currentTime'] = \
-                    bootloader.iso8601_to_epoch(json_signed['timeserver_time'])
+                    metadata.iso8601_to_epoch(json_signed['timeserver_time'])
 
   # Optional bit.
   if 'attacks_detected' in json_signed:
@@ -57,9 +57,9 @@ def get_asn_signed(json_signed):
 def get_json_signed(asn_metadata):
   asn_signed = asn_metadata['signed']
 
-  timeserver_time = bootloader.epoch_to_iso8601(asn_signed['currentTime'])
+  timeserver_time = metadata.epoch_to_iso8601(asn_signed['currentTime'])
   previous_timeserver_time = \
-          bootloader.epoch_to_iso8601(asn_signed['previousTime'])
+          metadata.epoch_to_iso8601(asn_signed['previousTime'])
   ecu_serial = str(asn_signed['ecuIdentifier'])
 
   target = asn_signed['installedImage']
@@ -102,6 +102,7 @@ def get_json_signed(asn_metadata):
 
 
 if __name__ == '__main__':
-  bootloader.test('ecuversionmanifest.json', 'ecuversionmanifest.ber',
+  metadata.test('ecuversionmanifest.json', 'ecuversionmanifest.ber',
                   get_asn_signed, get_json_signed,
-                  bootloader.identity_update_json_signature)
+                  metadata.identity_update_json_signature,
+                  ECUVersionManifest)
