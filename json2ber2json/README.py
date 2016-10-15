@@ -6,16 +6,28 @@ import json
 import tuf.repository_tool
 import tuf.keys
 
+# "Base" utility module.
 import metadata
+
+# Modules for TUF metadata.
 import rootmetadata
 import snapshotmetadata
 import targetsmetadata
 import timestampmetadata
+import metadataverificationmodule
+
+# Module for time server.
+import timeservermetadata
+import timeservermodule
+
+# Module for ECU version manifest.
+import bootloadermetadata
+import bootloadermodule
 
 
 def seamless_transport_of_json_over_ber(json_in_filename, ber_filename,
                                         json_out_filename, get_asn_signed,
-                                        get_json_signed):
+                                        get_json_signed, asn1Spec):
   '''This function demonstrates how to seamlessly transport JSON over BER
   without modifying JSON signatures.
   This is useful for TUF metadata (root, timestamp, snapshot, targets) that need
@@ -28,7 +40,12 @@ def seamless_transport_of_json_over_ber(json_in_filename, ber_filename,
   The fourth and fifth parameters are the get_asn_signed and get_json_signed
   functions from either the timestampmetadata, snapshotmetadata, rootmetadata,
   or targetsmetadata module, depending on which type of JSON metadata is being
-  converted.'''
+  converted.
+  The sixth parameter specifies the ASN.1 data structure for the message.
+  For timestamp, snapshot, root, targets metadata, it is
+  metadataverificationmodule.Metadata.
+  For the signed time server response, it is timeservermodule.CurrentTime.
+  For an ECU version manifest, it is bootloadermodule.ECUVersionManifest.'''
 
   # 1. Read from JSON.
   with open(json_in_filename, 'rb') as json_in_file:
@@ -42,7 +59,7 @@ def seamless_transport_of_json_over_ber(json_in_filename, ber_filename,
                                                            json_signed)
   with open (ber_filename, 'wb') as ber_file:
     ber_metadata = metadata.json_to_ber_metadata(asn_signed, ber_signed,
-                                                 json_signatures)
+                                                 json_signatures, asn1Spec)
     ber_file.write(ber_metadata)
   print('Wrote {}'.format(ber_filename))
 
@@ -51,7 +68,8 @@ def seamless_transport_of_json_over_ber(json_in_filename, ber_filename,
     ber_metadata = ber_file.read()
   print('Read {}'.format(ber_filename))
 
-  after_json = metadata.ber_to_json_metadata(get_json_signed, ber_metadata)
+  after_json = metadata.ber_to_json_metadata(get_json_signed, ber_metadata,
+                                             asn1Spec)
   with open(json_out_filename, 'wb') as json_out_file:
     json.dump(after_json, json_out_file, sort_keys=True, indent=1,
               separators=(',', ': '))
@@ -59,7 +77,7 @@ def seamless_transport_of_json_over_ber(json_in_filename, ber_filename,
 
 
 def sign_the_ber_not_the_json(json_in_filename, ber_filename, json_out_filename,
-                              get_asn_signed, get_json_signed):
+                              get_asn_signed, get_json_signed, asn1Spec):
   '''This function demonstrates how to encode JSON in BER, but *replacing* the
   signatures with the hash of the BER signed message, rather than of the entire
   JSON signed message.
@@ -72,7 +90,12 @@ def sign_the_ber_not_the_json(json_in_filename, ber_filename, json_out_filename,
   The fourth and fifth parameters are the get_asn_signed and get_json_signed
   functions from either the timestampmetadata, snapshotmetadata, rootmetadata,
   or targetsmetadata module, depending on which type of JSON metadata is being
-  converted.'''
+  converted.
+  The sixth parameter specifies the ASN.1 data structure for the message.
+  For timestamp, snapshot, root, targets metadata, it is
+  metadataverificationmodule.Metadata.
+  For the signed time server response, it is timeservermodule.CurrentTime.
+  For an ECU version manifest, it is bootloadermodule.ECUVersionManifest.'''
 
   # Setup keys.
   with open(json_in_filename) as json_in_file:
@@ -117,7 +140,7 @@ def sign_the_ber_not_the_json(json_in_filename, ber_filename, json_out_filename,
 
   with open (ber_filename, 'wb') as ber_file:
     ber_metadata = metadata.json_to_ber_metadata(asn_signed, ber_signed,
-                                                 json_signatures)
+                                                 json_signatures, asn1Spec)
     ber_file.write(ber_metadata)
   print('Wrote {}'.format(ber_filename))
 
@@ -128,7 +151,8 @@ def sign_the_ber_not_the_json(json_in_filename, ber_filename, json_out_filename,
 
   # This function checks that, indeed,
   # Metadata.signatures[i].hash==hash(BER(Metadata.signed)).
-  after_json = metadata.ber_to_json_metadata(get_json_signed, ber_metadata)
+  after_json = metadata.ber_to_json_metadata(get_json_signed, ber_metadata,
+                                             asn1Spec)
 
   # NOTE: In after_json, check that each signature is of that hash.
   for json_signature in after_json['signatures']:
@@ -146,10 +170,12 @@ if __name__ == '__main__':
                                       'timestamp2.ber',
                                       'timestamp2.json',
                                       timestampmetadata.get_asn_signed,
-                                      timestampmetadata.get_json_signed)
+                                      timestampmetadata.get_json_signed,
+                                      metadataverificationmodule.Metadata)
 
   sign_the_ber_not_the_json('timestamp.json',
                             'timestamp3.ber',
                             'timestamp3.json',
                             timestampmetadata.get_asn_signed,
-                            timestampmetadata.get_json_signed)
+                            timestampmetadata.get_json_signed,
+                            metadataverificationmodule.Metadata)
