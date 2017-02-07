@@ -31,10 +31,10 @@ import ecuversionmanifest
 import ecumodule
 
 
-def seamless_transport_of_json_over_ber(json_in_filename, ber_filename,
+def seamless_transport_of_json_over_der(json_in_filename, der_filename,
                                         json_out_filename, get_asn_signed,
                                         get_json_signed, asn1Spec):
-  '''This function demonstrates how to seamlessly transport JSON over BER
+  '''This function demonstrates how to seamlessly transport JSON over DER
   without modifying JSON signatures.
   This is useful for TUF metadata (root, timestamp, snapshot, targets) that need
   to be exchanged between repositories and primaries, or primaries and
@@ -42,7 +42,7 @@ def seamless_transport_of_json_over_ber(json_in_filename, ber_filename,
   implementation.
 
   The first three parameters are: (1) the input JSON filename, (2) the
-  intermediary BER filename, and (3) the output JSON filename.
+  intermediary DER filename, and (3) the output JSON filename.
   The fourth and fifth parameters are the get_asn_signed and get_json_signed
   functions from either the timestampmetadata, snapshotmetadata, rootmetadata,
   or targetsmetadata module, depending on which type of JSON metadata is being
@@ -62,21 +62,21 @@ def seamless_transport_of_json_over_ber(json_in_filename, ber_filename,
   json_signed = before_json['signed']
   json_signatures = before_json['signatures']
 
-  # 2. Write the BER encoding of the JSON.
-  asn_signed, ber_signed = metadata.get_asn_and_ber_signed(get_asn_signed,
+  # 2. Write the DER encoding of the JSON.
+  asn_signed, der_signed = metadata.get_asn_and_der_signed(get_asn_signed,
                                                            json_signed)
-  with open (ber_filename, 'wb') as ber_file:
-    ber_metadata = metadata.json_to_ber_metadata(asn_signed, ber_signed,
+  with open (der_filename, 'wb') as der_file:
+    der_metadata = metadata.json_to_der_metadata(asn_signed, der_signed,
                                                  json_signatures, asn1Spec)
-    ber_file.write(ber_metadata)
-  print('Wrote {}'.format(ber_filename))
+    der_file.write(der_metadata)
+  print('Wrote {}'.format(der_filename))
 
   # 3. Read it back to check the signed hash.
-  with open(ber_filename, 'rb') as ber_file:
-    ber_metadata = ber_file.read()
-  print('Read {}'.format(ber_filename))
+  with open(der_filename, 'rb') as der_file:
+    der_metadata = der_file.read()
+  print('Read {}'.format(der_filename))
 
-  after_json = metadata.ber_to_json_metadata(get_json_signed, ber_metadata,
+  after_json = metadata.der_to_json_metadata(get_json_signed, der_metadata,
                                              asn1Spec)
   with open(json_out_filename, 'wb') as json_out_file:
     json.dump(after_json, json_out_file, sort_keys=True, indent=1,
@@ -84,17 +84,17 @@ def seamless_transport_of_json_over_ber(json_in_filename, ber_filename,
   print('Wrote {}'.format(json_out_filename))
 
 
-def sign_the_ber_not_the_json(json_in_filename, ber_filename, json_out_filename,
+def sign_the_der_not_the_json(json_in_filename, der_filename, json_out_filename,
                               get_asn_signed, get_json_signed, asn1Spec):
-  '''This function demonstrates how to encode JSON in BER, but *replacing* the
-  signatures with the hash of the BER signed message, rather than of the entire
+  '''This function demonstrates how to encode JSON in DER, but *replacing* the
+  signatures with the hash of the DER signed message, rather than of the entire
   JSON signed message.
   This is useful for exchanging time server messages, ECU version manifests,
   or vehicle version manifests between repositories and primaries, or primaries
   and secondaries.
 
   The first three parameters are: (1) the input JSON filename, (2) the
-  intermediary BER filename, and (3) the output JSON filename.
+  intermediary DER filename, and (3) the output JSON filename.
   The fourth and fifth parameters are the get_asn_signed and get_json_signed
   functions from either the timestampmetadata, snapshotmetadata, rootmetadata,
   or targetsmetadata module, depending on which type of JSON metadata is being
@@ -115,12 +115,12 @@ def sign_the_ber_not_the_json(json_in_filename, ber_filename, json_out_filename,
        .generate_and_write_ed25519_keypair(json_signature['keyid'],
                                            password='')
 
-  def update_json_signature(ber_signed_digest, json_signature):
+  def update_json_signature(der_signed_digest, json_signature):
     keyid = json_signature['keyid']
     private_key = tuf.repository_tool\
                      .import_ed25519_privatekey_from_file(keyid,
                                                           password='')
-    signature = tuf.keys.create_signature(private_key, ber_signed_digest)
+    signature = tuf.keys.create_signature(private_key, der_signed_digest)
     # NOTE: Update the original JSON signature object!
     json_signature['sig'] = signature['sig']
 
@@ -139,29 +139,29 @@ def sign_the_ber_not_the_json(json_in_filename, ber_filename, json_out_filename,
   json_signed = before_json['signed']
   json_signatures = before_json['signatures']
 
-  # 2. Write the signed BER.
-  asn_signed, ber_signed = metadata.get_asn_and_ber_signed(get_asn_signed,
+  # 2. Write the signed DER.
+  asn_signed, der_signed = metadata.get_asn_and_der_signed(get_asn_signed,
                                                            json_signed)
-  ber_signed_digest = hashlib.sha256(ber_signed).hexdigest()
+  der_signed_digest = hashlib.sha256(der_signed).hexdigest()
 
-  # NOTE: Use ber_signed_digest to *MODIFY* json_signatures.
+  # NOTE: Use der_signed_digest to *MODIFY* json_signatures.
   for json_signature in json_signatures:
-    update_json_signature(ber_signed_digest, json_signature)
+    update_json_signature(der_signed_digest, json_signature)
 
-  with open (ber_filename, 'wb') as ber_file:
-    ber_metadata = metadata.json_to_ber_metadata(asn_signed, ber_signed,
+  with open (der_filename, 'wb') as der_file:
+    der_metadata = metadata.json_to_der_metadata(asn_signed, der_signed,
                                                  json_signatures, asn1Spec)
-    ber_file.write(ber_metadata)
-  print('Wrote {}'.format(ber_filename))
+    der_file.write(der_metadata)
+  print('Wrote {}'.format(der_filename))
 
   # 3. Read it back to check the signed hash.
-  with open(ber_filename, 'rb') as ber_file:
-    ber_metadata = ber_file.read()
-  print('Read {}'.format(ber_filename))
+  with open(der_filename, 'rb') as der_file:
+    der_metadata = der_file.read()
+  print('Read {}'.format(der_filename))
 
   # This function checks that, indeed,
-  # Metadata.signatures[i].hash==hash(BER(Metadata.signed)).
-  after_json = metadata.ber_to_json_metadata(get_json_signed, ber_metadata,
+  # Metadata.signatures[i].hash==hash(DER(Metadata.signed)).
+  after_json = metadata.der_to_json_metadata(get_json_signed, der_metadata,
                                              asn1Spec)
 
   # NOTE: In after_json, check that each signature is of that hash.
@@ -176,15 +176,15 @@ def sign_the_ber_not_the_json(json_in_filename, ber_filename, json_out_filename,
 
 if __name__ == '__main__':
   # These two functions are almost identical, except for a subtle difference.
-  seamless_transport_of_json_over_ber('timestamp.json',
-                                      'timestamp2.ber',
+  seamless_transport_of_json_over_der('timestamp.json',
+                                      'timestamp2.der',
                                       'timestamp2.json',
                                       timestampmetadata.get_asn_signed,
                                       timestampmetadata.get_json_signed,
                                       metadataverificationmodule.Metadata)
 
-  sign_the_ber_not_the_json('timestamp.json',
-                            'timestamp3.ber',
+  sign_the_der_not_the_json('timestamp.json',
+                            'timestamp3.der',
                             'timestamp3.json',
                             timestampmetadata.get_asn_signed,
                             timestampmetadata.get_json_signed,

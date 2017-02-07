@@ -75,6 +75,6 @@ def get_json_signed(asn_metadata):
 
 
 if __name__ == '__main__':
-  metadata.test('snapshot.json', 'snapshot.ber', get_asn_signed,
+  metadata.test('snapshot.json', 'snapshot.der', get_asn_signed,
                 get_json_signed, metadata.identity_update_json_signature,
                 Metadata)
