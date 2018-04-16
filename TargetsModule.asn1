@@ -37,6 +37,8 @@ TargetsModule DEFINITIONS AUTOMATIC TAGS ::= BEGIN
     custom  Custom OPTIONAL
   }
   Target ::= SEQUENCE {
+    -- URL to download the target.
+    fileDownloadUrl URL,
     filename        Filename,
     length          Length,
     numberOfHashes  Length,
@@ -78,7 +80,11 @@ TargetsModule DEFINITIONS AUTOMATIC TAGS ::= BEGIN
     -- This is the symmetric key type.
     encryptedSymmetricKeyType   EncryptedSymmetricKeyType,
     -- This is the symmetric key encrypted using the asymmetric ECU key.
-    encryptedSymmetricKeyValue  BinaryData
+    encryptedSymmetricKeyValue  BinaryData,
+    -- This is symmetric key algorithm mode, for e.g AFB,CFB
+    encryptedSymmetricKeyAlgorithmMode VisibleString,
+    -- Initialization vector
+    iv BinaryData
   }
   EncryptedSymmetricKeyType ::= ENUMERATED {aes128, aes192, aes256, ...}
 
